@@ -474,7 +474,7 @@
             } else {
                 attempts--;
                 attemptsLeft.textContent = attempts;
-                errorMsg.textContent = timer > 0 ? Incorrect PIN. Attempts left: ${attempts} : 'PIN has expired. Wait for a new PIN.';
+                errorMsg.textContent = timer > 0 ? `Incorrect PIN. Attempts left: ${attempts}` : 'PIN has expired. Wait for a new PIN.';
                 errorMsg.style.display = 'block';
 
                 if (attempts <= 0) {
