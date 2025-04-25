@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luxury Login Page</title>
+    <title>arisksec • login • page</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -193,7 +193,7 @@
             display: none;
             font-weight: 400;
             opacity: 0;
-            transition: opacity 1s ease-in-out; /* Fade-in animation over 1 second */
+            transition: opacity 1s ease-in-out;
         }
 
         .redirect-message.show {
@@ -210,7 +210,6 @@
             text-decoration: underline;
         }
 
-        /* Enhanced Responsive Design */
         @media (max-width: 768px) {
             .login-container {
                 padding: 2.5rem;
@@ -550,6 +549,15 @@
             }, 1000);
         }
 
+        // Simple XOR-based encoding for session token (basic obfuscation)
+        function encodeToken(token, key) {
+            let result = '';
+            for (let i = 0; i < token.length; i++) {
+                result += String.fromCharCode(token.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            return btoa(result); // Base64 encode the result
+        }
+
         function checkPin() {
             if (isBlocked) return;
 
@@ -563,7 +571,16 @@
             if (enteredPin === correctPin && timer > 0) {
                 console.log('Login successful, showing message...');
                 localStorage.removeItem('pinAuthState');
-                redirectMsg.classList.add('show'); // Trigger fade-in animation
+
+                // Generate a session token with timestamp (valid for 5 minutes)
+                const timestamp = Date.now();
+                const rawToken = `${timestamp}:${enteredPin}`;
+                const key = 'aaryanSecretKey'; // Simple key for XOR encoding
+                const sessionToken = encodeToken(rawToken, key);
+                sessionStorage.setItem('authToken', sessionToken);
+                sessionStorage.setItem('authTimestamp', timestamp);
+
+                redirectMsg.classList.add('show');
 
                 setTimeout(() => {
                     console.log('Attempting redirect...');
@@ -577,7 +594,7 @@
                         console.error('Redirect failed:', e);
                         redirectMsg.classList.add('show');
                     }
-                }, 3000); // Delay redirect by 3 seconds
+                }, 3000);
             } else {
                 attempts--;
                 attemptsLeft.textContent = attempts;
