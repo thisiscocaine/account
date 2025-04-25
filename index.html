@@ -262,221 +262,255 @@
         <div class="blocked" id="blockedMsg" style="display: none;">Too many failed attempts. Blocked for <span id="blockTimer">300</span>s</div>
     </div>
 
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<script type="text/javascript">
-    // Existing XLSX Script (unchanged)
-    var gk_isXlsx = false;
-    var gk_xlsxFileLookup = {};
-    var gk_fileData = {};
-    function filledCell(cell) {
-        return cell !== '' && cell != null;
-    }
-    function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                    row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                if (headerRowIndex === -1 || headerRowIndex > 25) headerRowIndex = 0;
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
+    <script type="text/javascript">
+        // Existing XLSX script
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
         }
-        return gk_fileData[filename] || "";
-    }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
 
-    // Secure Login Script Starts
-    let correctPin = '';
-    let attempts = 5;
-    let isBlocked = false;
-    let timer = 10;
-    let regenTimer = 60;
-    let blockTimer = 300;
-    let pinTimeout, regenTimeout;
-    let pinExpiryTime = 0, regenExpiryTime = 0, blockExpiryTime = 0;
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
 
-    const pinDisplay = document.getElementById('pin');
-    const pinInput = document.getElementById('pinInput');
-    const loginBtn = document.getElementById('loginBtn');
-    const timerDisplay = document.getElementById('timer');
-    const regenTimerDisplay = document.getElementById('regenTimer');
-    const errorMsg = document.getElementById('errorMsg');
-    const attemptsLeft = document.getElementById('attemptsLeft');
-    const blockedMsg = document.getElementById('blockedMsg');
-    const blockTimerDisplay = document.getElementById('blockTimer');
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
 
-    function loadState() {
-        const savedState = localStorage.getItem('pinAuthState');
-        if (savedState) {
-            const state = JSON.parse(savedState);
-            correctPin = state.correctPin || '';
-            attempts = state.attempts || 5;
-            isBlocked = state.isBlocked || false;
-            pinExpiryTime = state.pinExpiryTime || 0;
-            regenExpiryTime = state.regenExpiryTime || 0;
-            blockExpiryTime = state.blockExpiryTime || 0;
-
-            const now = Date.now();
-            if (isBlocked && now < blockExpiryTime) {
-                blockTimer = Math.ceil((blockExpiryTime - now) / 1000);
-                startBlockTimer();
-            } else {
-                isBlocked = false;
-                attempts = 5;
-                blockExpiryTime = 0;
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
             }
+            return gk_fileData[filename] || "";
+        }
 
-            if (now < pinExpiryTime) {
-                timer = Math.ceil((pinExpiryTime - now) / 1000);
-                timerDisplay.textContent = timer;
-                regenTimerDisplay.parentElement.style.display = 'none';
-                startPinTimer();
-            } else if (now < regenExpiryTime) {
-                regenTimer = Math.ceil((regenExpiryTime - now) / 1000);
-                regenTimerDisplay.textContent = regenTimer;
-                timerDisplay.parentElement.style.display = 'none';
-                startRegenTimer();
+        // Login script
+        let correctPin = '';
+        let attempts = 5;
+        let isBlocked = false;
+        let timer = 10;
+        let regenTimer = 60;
+        let blockTimer = 300;
+        let pinTimeout;
+        let regenTimeout;
+        let pinExpiryTime = 0;
+        let regenExpiryTime = 0;
+        let blockExpiryTime = 0;
+
+        const pinDisplay = document.getElementById('pin');
+        const pinInput = document.getElementById('pinInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const timerDisplay = document.getElementById('timer');
+        const regenTimerDisplay = document.getElementById('regenTimer');
+        const errorMsg = document.getElementById('errorMsg');
+        const attemptsLeft = document.getElementById('attemptsLeft');
+        const blockedMsg = document.getElementById('blockedMsg');
+        const blockTimerDisplay = document.getElementById('blockTimer');
+
+        // Check localStorage for existing state
+        function loadState() {
+            const savedState = localStorage.getItem('pinAuthState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                correctPin = state.correctPin || '';
+                attempts = state.attempts || 5;
+                isBlocked = state.isBlocked || false;
+                pinExpiryTime = state.pinExpiryTime || 0;
+                regenExpiryTime = state.regenExpiryTime || 0;
+                blockExpiryTime = state.blockExpiryTime || 0;
+                
+                const now = Date.now();
+                
+                if (isBlocked) {
+                    if (now < blockExpiryTime) {
+                        // Still blocked
+                        blockTimer = Math.ceil((blockExpiryTime - now) / 1000);
+                        startBlockTimer();
+                    } else {
+                        // Block expired
+                        isBlocked = false;
+                        attempts = 5;
+                        blockExpiryTime = 0;
+                    }
+                }
+                
+                if (now < pinExpiryTime) {
+                    // PIN is still valid
+                    timer = Math.ceil((pinExpiryTime - now) / 1000);
+                    timerDisplay.textContent = timer;
+                    regenTimerDisplay.parentElement.style.display = 'none';
+                    startPinTimer();
+                } else if (now < regenExpiryTime) {
+                    // Waiting for new PIN
+                    regenTimer = Math.ceil((regenExpiryTime - now) / 1000);
+                    regenTimerDisplay.textContent = regenTimer;
+                    timerDisplay.parentElement.style.display = 'none';
+                    startRegenTimer();
+                } else {
+                    // No valid state, generate new PIN
+                    generatePin();
+                }
             } else {
+                // No saved state, generate new PIN
                 generatePin();
             }
-        } else {
-            generatePin();
         }
-    }
 
-    function saveState() {
-        localStorage.setItem('pinAuthState', JSON.stringify({
-            correctPin, attempts, isBlocked, pinExpiryTime, regenExpiryTime, blockExpiryTime
-        }));
-    }
+        function saveState() {
+            const state = {
+                correctPin,
+                attempts,
+                isBlocked,
+                pinExpiryTime,
+                regenExpiryTime,
+                blockExpiryTime
+            };
+            localStorage.setItem('pinAuthState', JSON.stringify(state));
+        }
 
-    function generatePin() {
-        correctPin = Math.floor(10000 + Math.random() * 90000).toString();
-        pinDisplay.textContent = correctPin;
-        pinInput.value = correctPin;
-        timer = 10;
-        timerDisplay.textContent = timer;
-        regenTimerDisplay.parentElement.style.display = 'none';
-        timerDisplay.parentElement.style.display = 'block';
-        pinExpiryTime = Date.now() + 10000;
-        regenExpiryTime = 0;
-        saveState();
-        startPinTimer();
-    }
-
-    function startPinTimer() {
-        clearInterval(pinTimeout);
-        clearInterval(regenTimeout);
-        const interval = setInterval(() => {
-            timer--;
+        function generatePin() {
+            correctPin = Math.floor(10000 + Math.random() * 90000).toString();
+            pinDisplay.textContent = correctPin;
+            pinInput.value = correctPin; // Auto-fill the PIN
+            timer = 10;
             timerDisplay.textContent = timer;
-            if (timer <= 0) {
-                clearInterval(interval);
-                pinInput.value = '';
-                regenTimer = 60;
+            regenTimerDisplay.parentElement.style.display = 'none';
+            timerDisplay.parentElement.style.display = 'block';
+            
+            // Set expiry time (current time + 10 seconds)
+            pinExpiryTime = Date.now() + 10000;
+            regenExpiryTime = 0;
+            
+            saveState();
+            startPinTimer();
+        }
+
+        function startPinTimer() {
+            clearInterval(pinTimeout);
+            clearInterval(regenTimeout);
+            
+            const timerInterval = setInterval(() => {
+                timer--;
+                timerDisplay.textContent = timer;
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    pinInput.value = ''; // Clear input when PIN expires
+                    regenTimer = 60;
+                    regenTimerDisplay.textContent = regenTimer;
+                    timerDisplay.parentElement.style.display = 'none';
+                    regenTimerDisplay.parentElement.style.display = 'block';
+                    
+                    // Set regen expiry time (current time + 60 seconds)
+                    regenExpiryTime = Date.now() + 60000;
+                    pinExpiryTime = 0;
+                    saveState();
+                    
+                    startRegenTimer();
+                }
+            }, 1000);
+        }
+
+        function startRegenTimer() {
+            const regenInterval = setInterval(() => {
+                regenTimer--;
                 regenTimerDisplay.textContent = regenTimer;
-                timerDisplay.parentElement.style.display = 'none';
-                regenTimerDisplay.parentElement.style.display = 'block';
-                regenExpiryTime = Date.now() + 60000;
-                pinExpiryTime = 0;
-                saveState();
-                startRegenTimer();
-            }
-        }, 1000);
-    }
-
-    function startRegenTimer() {
-        const interval = setInterval(() => {
-            regenTimer--;
-            regenTimerDisplay.textContent = regenTimer;
-            if (regenTimer <= 0) {
-                clearInterval(interval);
-                generatePin();
-            }
-        }, 1000);
-    }
-
-    function startBlockTimer() {
-        blockedMsg.style.display = 'block';
-        loginBtn.disabled = true;
-        errorMsg.style.display = 'none';
-        const interval = setInterval(() => {
-            blockTimer--;
-            blockTimerDisplay.textContent = blockTimer;
-            if (blockTimer <= 0) {
-                clearInterval(interval);
-                isBlocked = false;
-                loginBtn.disabled = false;
-                blockedMsg.style.display = 'none';
-                attempts = 5;
-                attemptsLeft.textContent = attempts;
-                blockExpiryTime = 0;
-                saveState();
-                generatePin();
-            }
-        }, 1000);
-    }
-
-    // ✅ Highly Secure Modified Function
-    function checkPin() {
-        if (isBlocked) return;
-        const enteredPin = pinInput.value;
-
-        if (!/^\d{5}$/.test(enteredPin)) {
-            errorMsg.textContent = 'Please enter a valid 5-digit PIN.';
-            errorMsg.style.display = 'block';
-            return;
+                if (regenTimer <= 0) {
+                    clearInterval(regenInterval);
+                    generatePin();
+                }
+            }, 1000);
         }
 
-        if (enteredPin === correctPin && timer > 0) {
-            const token = CryptoJS.SHA256(`${correctPin}_${Date.now()}_${navigator.userAgent}`).toString();
-            sessionStorage.setItem('secure_session_token', token);
-
-            localStorage.removeItem('pinAuthState'); // Cleanup
-            window.location.href = 'https://resume.aaryan.com.np/';
-        } else {
-            attempts--;
-            attemptsLeft.textContent = attempts;
-            errorMsg.textContent = timer > 0
-                ? `Incorrect PIN. Attempts left: ${attempts}`
-                : 'PIN has expired. Wait for a new PIN.';
-            errorMsg.style.display = 'block';
-
-            if (attempts <= 0) {
-                isBlocked = true;
-                blockTimer = 300;
+        function startBlockTimer() {
+            blockedMsg.style.display = 'block';
+            loginBtn.disabled = true;
+            errorMsg.style.display = 'none';
+            
+            const blockInterval = setInterval(() => {
+                blockTimer--;
                 blockTimerDisplay.textContent = blockTimer;
-                blockExpiryTime = Date.now() + 300000;
-                saveState();
-                startBlockTimer();
+                if (blockTimer <= 0) {
+                    clearInterval(blockInterval);
+                    isBlocked = false;
+                    loginBtn.disabled = false;
+                    blockedMsg.style.display = 'none';
+                    attempts = 5;
+                    attemptsLeft.textContent = attempts;
+                    blockExpiryTime = 0;
+                    saveState();
+                    generatePin();
+                }
+            }, 1000);
+        }
+
+        function checkPin() {
+            if (isBlocked) return;
+
+            const enteredPin = pinInput.value;
+            if (!/^\d{5}$/.test(enteredPin)) {
+                errorMsg.textContent = 'Please enter a valid 5-digit PIN.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            if (enteredPin === correctPin && timer > 0) {
+                // Clear state on successful login
+                localStorage.removeItem('pinAuthState');
+                window.location.replace('https://resume.aaryan.com.np/'); // Permanent redirect
             } else {
-                saveState();
+                attempts--;
+                attemptsLeft.textContent = attempts;
+                errorMsg.textContent = timer > 0 ? Incorrect PIN. Attempts left: ${attempts} : 'PIN has expired. Wait for a new PIN.';
+                errorMsg.style.display = 'block';
+
+                if (attempts <= 0) {
+                    isBlocked = true;
+                    blockTimer = 300;
+                    blockTimerDisplay.textContent = blockTimer;
+                    
+                    // Set block expiry time (current time + 300 seconds)
+                    blockExpiryTime = Date.now() + 300000;
+                    saveState();
+                    
+                    startBlockTimer();
+                } else {
+                    saveState();
+                }
             }
         }
-    }
 
-    // Init
-    loadState();
+        // Initialize the page
+        loadState();
 
-    // Disable right-click, F12, Ctrl+Shift+I
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) e.preventDefault();
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            checkPin();
-        }
-    });
-</script>
+        // Prevent form submission and page refresh
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkPin();
+            }
+        });
 
+        // Additional security: Prevent right-click and inspect element
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
