@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Login Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Playfair Display', serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1c2526, #2c3e50, #1c2526);
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/black-orchid.png');
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1), transparent);
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        .login-container {
+            background: rgba(20, 20, 30, 0.9);
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(192, 192, 192, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 420px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            z-index: 1;
+            animation: diamondGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes diamondGlow {
+            from {
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(192, 192, 192, 0.1);
+                border-color: rgba(255, 215, 0, 0.3);
+            }
+            to {
+                box-shadow: 0 25px 70px rgba(255, 255, 255, 0.2), inset 0 0 35px rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 215, 0, 0.5);
+            }
+        }
+
+        .logo {
+            width: 80px;
+            margin-bottom: 1.8rem;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+            transition: transform 0.4s ease;
+        }
+
+        .logo:hover {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        h2 {
+            color: #c0c0c0;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Cinzel', serif;
+            background: linear-gradient(45deg, #ffd700, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pin-display {
+            display: none;
+        }
+
+        .timer-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .timer, .regen-timer {
+            color: #e0115f;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.9rem;
+            margin-bottom: 1.8rem;
+            border: none;
+            border-radius: 35px;
+            background: rgba(192, 192, 192, 0.1);
+            color: #fff;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 7px;
+            outline: none;
+            transition: all 0.4s ease;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        input[type="text"]:focus {
+            background: rgba(255, 215, 0, 0.15);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 35px;
+            background: linear-gradient(45deg, #e0115f, #ffd700);
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 25px rgba(224, 17, 95, 0.6);
+        }
+
+        button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.8);
+            background: linear-gradient(45deg, #ffd700, #e0115f);
+        }
+
+        button:disabled {
+            background: #333;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error {
+            color: #e0115f;
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            display: none;
+            font-weight: 400;
+        }
+
+        .blocked {
+            color: #e0115f;
+            font-size: 1.05rem;
+            margin-top: 1rem;
+            font-weight: 400;
+        }
+
+        /* Enhanced Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 2.5rem;
+                max-width: 380px;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            .logo {
+                width: 70px;
+            }
+
+            input[type="text"], button {
+                font-size: 1.1rem;
+                padding: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 2rem;
+                max-width: 90%;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+                letter-spacing: 2px;
+            }
+
+            .logo {
+                width: 60px;
+            }
+
+            input[type="text"], button {
+                font-size: 1rem;
+                padding: 0.7rem;
+            }
+
+            .timer, .regen-timer, .error, .blocked {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .login-container {
+                padding: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            .logo {
+                width: 50px;
+            }
+
+            input[type="text"], button {
+                font-size: 0.9rem;
+                padding: 0.6rem;
+            }
+
+            .timer, .regen-timer, .error, .blocked {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <img src="https://cdn.aryanaryal.com.np/626c6f672d617279616e/70686f746f73/6c6f676f73/favicon.png" alt="Logo" class="logo">
+        <h2>arisksec</h2>
+        <div class="pin-display">PIN: <span id="pin"></span></div>
+        <input type="text" id="pinInput" placeholder="Enter 5-digit PIN" maxlength="5" autocomplete="off">
+        <button id="loginBtn" onclick="checkPin()">Login</button>
+        <div class="timer-container">
+            <div class="timer">Time left: <span id="timer">10</span>s</div>
+            <div class="regen-timer">New PIN in: <span id="regenTimer">60</span>s</div>
+        </div>
+        <div class="error" id="errorMsg">Incorrect PIN. Attempts left: <span id="attemptsLeft">5</span></div>
+        <div class="blocked" id="blockedMsg" style="display: none;">Too many failed attempts. Blocked for <span id="blockTimer">300</span>s</div>
+    </div>
+
+    <script type="text/javascript">
+        // Existing XLSX script
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        // Login script
+        let correctPin = '';
+        let attempts = 5;
+        let isBlocked = false;
+        let timer = 10;
+        let regenTimer = 60;
+        let blockTimer = 300;
+        let pinTimeout;
+        let regenTimeout;
+        let pinExpiryTime = 0;
+        let regenExpiryTime = 0;
+        let blockExpiryTime = 0;
+
+        const pinDisplay = document.getElementById('pin');
+        const pinInput = document.getElementById('pinInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const timerDisplay = document.getElementById('timer');
+        const regenTimerDisplay = document.getElementById('regenTimer');
+        const errorMsg = document.getElementById('errorMsg');
+        const attemptsLeft = document.getElementById('attemptsLeft');
+        const blockedMsg = document.getElementById('blockedMsg');
+        const blockTimerDisplay = document.getElementById('blockTimer');
+
+        // Check localStorage for existing state
+        function loadState() {
+            const savedState = localStorage.getItem('pinAuthState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                correctPin = state.correctPin || '';
+                attempts = state.attempts || 5;
+                isBlocked = state.isBlocked || false;
+                pinExpiryTime = state.pinExpiryTime || 0;
+                regenExpiryTime = state.regenExpiryTime || 0;
+                blockExpiryTime = state.blockExpiryTime || 0;
+                
+                const now = Date.now();
+                
+                if (isBlocked) {
+                    if (now < blockExpiryTime) {
+                        // Still blocked
+                        blockTimer = Math.ceil((blockExpiryTime - now) / 1000);
+                        startBlockTimer();
+                    } else {
+                        // Block expired
+                        isBlocked = false;
+                        attempts = 5;
+                        blockExpiryTime = 0;
+                    }
+                }
+                
+                if (now < pinExpiryTime) {
+                    // PIN is still valid
+                    timer = Math.ceil((pinExpiryTime - now) / 1000);
+                    timerDisplay.textContent = timer;
+                    regenTimerDisplay.parentElement.style.display = 'none';
+                    startPinTimer();
+                } else if (now < regenExpiryTime) {
+                    // Waiting for new PIN
+                    regenTimer = Math.ceil((regenExpiryTime - now) / 1000);
+                    regenTimerDisplay.textContent = regenTimer;
+                    timerDisplay.parentElement.style.display = 'none';
+                    startRegenTimer();
+                } else {
+                    // No valid state, generate new PIN
+                    generatePin();
+                }
+            } else {
+                // No saved state, generate new PIN
+                generatePin();
+            }
+        }
+
+        function saveState() {
+            const state = {
+                correctPin,
+                attempts,
+                isBlocked,
+                pinExpiryTime,
+                regenExpiryTime,
+                blockExpiryTime
+            };
+            localStorage.setItem('pinAuthState', JSON.stringify(state));
+        }
+
+        function generatePin() {
+            correctPin = Math.floor(10000 + Math.random() * 90000).toString();
+            pinDisplay.textContent = correctPin;
+            pinInput.value = correctPin; // Auto-fill the PIN
+            timer = 10;
+            timerDisplay.textContent = timer;
+            regenTimerDisplay.parentElement.style.display = 'none';
+            timerDisplay.parentElement.style.display = 'block';
+            
+            // Set expiry time (current time + 10 seconds)
+            pinExpiryTime = Date.now() + 10000;
+            regenExpiryTime = 0;
+            
+            saveState();
+            startPinTimer();
+        }
+
+        function startPinTimer() {
+            clearInterval(pinTimeout);
+            clearInterval(regenTimeout);
+            
+            const timerInterval = setInterval(() => {
+                timer--;
+                timerDisplay.textContent = timer;
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    pinInput.value = ''; // Clear input when PIN expires
+                    regenTimer = 60;
+                    regenTimerDisplay.textContent = regenTimer;
+                    timerDisplay.parentElement.style.display = 'none';
+                    regenTimerDisplay.parentElement.style.display = 'block';
+                    
+                    // Set regen expiry time (current time + 60 seconds)
+                    regenExpiryTime = Date.now() + 60000;
+                    pinExpiryTime = 0;
+                    saveState();
+                    
+                    startRegenTimer();
+                }
+            }, 1000);
+        }
+
+        function startRegenTimer() {
+            const regenInterval = setInterval(() => {
+                regenTimer--;
+                regenTimerDisplay.textContent = regenTimer;
+                if (regenTimer <= 0) {
+                    clearInterval(regenInterval);
+                    generatePin();
+                }
+            }, 1000);
+        }
+
+        function startBlockTimer() {
+            blockedMsg.style.display = 'block';
+            loginBtn.disabled = true;
+            errorMsg.style.display = 'none';
+            
+            const blockInterval = setInterval(() => {
+                blockTimer--;
+                blockTimerDisplay.textContent = blockTimer;
+                if (blockTimer <= 0) {
+                    clearInterval(blockInterval);
+                    isBlocked = false;
+                    loginBtn.disabled = false;
+                    blockedMsg.style.display = 'none';
+                    attempts = 5;
+                    attemptsLeft.textContent = attempts;
+                    blockExpiryTime = 0;
+                    saveState();
+                    generatePin();
+                }
+            }, 1000);
+        }
+
+        function checkPin() {
+            if (isBlocked) return;
+
+            const enteredPin = pinInput.value;
+            if (!/^\d{5}$/.test(enteredPin)) {
+                errorMsg.textContent = 'Please enter a valid 5-digit PIN.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            if (enteredPin === correctPin && timer > 0) {
+                // Clear state on successful login
+                localStorage.removeItem('pinAuthState');
+                window.location.replace('https://resume.aaryan.com.np/'); // Permanent redirect
+            } else {
+                attempts--;
+                attemptsLeft.textContent = attempts;
+                errorMsg.textContent = timer > 0 ? `Incorrect PIN. Attempts left: ${attempts}` : 'PIN has expired. Wait for a new PIN.';
+                errorMsg.style.display = 'block';
+
+                if (attempts <= 0) {
+                    isBlocked = true;
+                    blockTimer = 300;
+                    blockTimerDisplay.textContent = blockTimer;
+                    
+                    // Set block expiry time (current time + 300 seconds)
+                    blockExpiryTime = Date.now() + 300000;
+                    saveState();
+                    
+                    startBlockTimer();
+                } else {
+                    saveState();
+                }
+            }
+        }
+
+        // Initialize the page
+        loadState();
+
+        // Prevent form submission and page refresh
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkPin();
+            }
+        });
+
+        // Additional security: Prevent right-click and inspect element
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
