@@ -18,9 +18,18 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #1c2526, #2c3e50, #1c2526);
+            background: linear-gradient(135deg, #1a1a1a, #2b2b2b, #1a1a1a);
             overflow: hidden;
             position: relative;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
 
         body::before {
@@ -30,8 +39,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/black-orchid.png');
-            opacity: 0.15;
+            background: url('https://www.transparenttextures.com/patterns/velvet.png');
+            opacity: 0.2;
             z-index: 0;
         }
 
@@ -42,8 +51,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.1), transparent);
-            opacity: 0.3;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.15), rgba(192, 192, 192, 0.1), transparent);
+            opacity: 0.4;
             z-index: 0;
         }
 
@@ -177,6 +186,30 @@
             font-weight: 400;
         }
 
+        .redirect-message {
+            color: #ffd700;
+            font-size: 1rem;
+            margin-top: 1rem;
+            display: none;
+            font-weight: 400;
+            opacity: 0;
+            transition: opacity 1s ease-in-out; /* Fade-in animation over 1 second */
+        }
+
+        .redirect-message.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .redirect-message a {
+            color: #e0115f;
+            text-decoration: none;
+        }
+
+        .redirect-message a:hover {
+            text-decoration: underline;
+        }
+
         /* Enhanced Responsive Design */
         @media (max-width: 768px) {
             .login-container {
@@ -218,7 +251,7 @@
                 padding: 0.7rem;
             }
 
-            .timer, .regen-timer, .error, .blocked {
+            .timer, .regen-timer, .error, .blocked, .redirect-message {
                 font-size: 0.9rem;
             }
         }
@@ -241,13 +274,14 @@
                 padding: 0.6rem;
             }
 
-            .timer, .regen-timer, .error, .blocked {
+            .timer, .regen-timer, .error, .blocked, .redirect-message {
                 font-size: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
+    <canvas id="twinkleCanvas"></canvas>
     <div class="login-container">
         <img src="https://cdn.aryanaryal.com.np/626c6f672d617279616e/70686f746f73/6c6f676f73/favicon.png" alt="Logo" class="logo">
         <h2>arisksec</h2>
@@ -260,9 +294,75 @@
         </div>
         <div class="error" id="errorMsg">Incorrect PIN. Attempts left: <span id="attemptsLeft">5</span></div>
         <div class="blocked" id="blockedMsg" style="display: none;">Too many failed attempts. Blocked for <span id="blockTimer">300</span>s</div>
+        <div class="redirect-message" id="redirectMsg">Login successful! Redirecting... If not redirected, <a href="https://resume.aaryan.com.np/">click here</a>.</div>
     </div>
 
     <script type="text/javascript">
+        // Twinkle Canvas Animation
+        const canvas = document.getElementById('twinkleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.5;
+                this.color = Math.random() < 0.5 ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)';
+                this.twinkleSpeed = Math.random() * 0.05 + 0.02;
+                this.twinklePhase = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.twinklePhase += this.twinkleSpeed;
+                this.opacity = 0.5 + Math.sin(this.twinklePhase) * 0.3;
+
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const particleCount = 100;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
         // Existing XLSX script
         var gk_isXlsx = false;
         var gk_xlsxFileLookup = {};
@@ -320,6 +420,7 @@
         const attemptsLeft = document.getElementById('attemptsLeft');
         const blockedMsg = document.getElementById('blockedMsg');
         const blockTimerDisplay = document.getElementById('blockTimer');
+        const redirectMsg = document.getElementById('redirectMsg');
 
         // Check localStorage for existing state
         function loadState() {
@@ -337,11 +438,9 @@
                 
                 if (isBlocked) {
                     if (now < blockExpiryTime) {
-                        // Still blocked
                         blockTimer = Math.ceil((blockExpiryTime - now) / 1000);
                         startBlockTimer();
                     } else {
-                        // Block expired
                         isBlocked = false;
                         attempts = 5;
                         blockExpiryTime = 0;
@@ -349,23 +448,19 @@
                 }
                 
                 if (now < pinExpiryTime) {
-                    // PIN is still valid
                     timer = Math.ceil((pinExpiryTime - now) / 1000);
                     timerDisplay.textContent = timer;
                     regenTimerDisplay.parentElement.style.display = 'none';
                     startPinTimer();
                 } else if (now < regenExpiryTime) {
-                    // Waiting for new PIN
                     regenTimer = Math.ceil((regenExpiryTime - now) / 1000);
                     regenTimerDisplay.textContent = regenTimer;
                     timerDisplay.parentElement.style.display = 'none';
                     startRegenTimer();
                 } else {
-                    // No valid state, generate new PIN
                     generatePin();
                 }
             } else {
-                // No saved state, generate new PIN
                 generatePin();
             }
         }
@@ -385,13 +480,12 @@
         function generatePin() {
             correctPin = Math.floor(10000 + Math.random() * 90000).toString();
             pinDisplay.textContent = correctPin;
-            pinInput.value = correctPin; // Auto-fill the PIN
+            pinInput.value = correctPin;
             timer = 10;
             timerDisplay.textContent = timer;
             regenTimerDisplay.parentElement.style.display = 'none';
             timerDisplay.parentElement.style.display = 'block';
             
-            // Set expiry time (current time + 10 seconds)
             pinExpiryTime = Date.now() + 10000;
             regenExpiryTime = 0;
             
@@ -408,13 +502,12 @@
                 timerDisplay.textContent = timer;
                 if (timer <= 0) {
                     clearInterval(timerInterval);
-                    pinInput.value = ''; // Clear input when PIN expires
+                    pinInput.value = '';
                     regenTimer = 60;
                     regenTimerDisplay.textContent = regenTimer;
                     timerDisplay.parentElement.style.display = 'none';
                     regenTimerDisplay.parentElement.style.display = 'block';
                     
-                    // Set regen expiry time (current time + 60 seconds)
                     regenExpiryTime = Date.now() + 60000;
                     pinExpiryTime = 0;
                     saveState();
@@ -468,9 +561,23 @@
             }
 
             if (enteredPin === correctPin && timer > 0) {
-                // Clear state on successful login
+                console.log('Login successful, showing message...');
                 localStorage.removeItem('pinAuthState');
-                window.location.replace('https://resume.aaryan.com.np/'); // Permanent redirect
+                redirectMsg.classList.add('show'); // Trigger fade-in animation
+
+                setTimeout(() => {
+                    console.log('Attempting redirect...');
+                    try {
+                        window.location.replace('https://resume.aaryan.com.np/');
+                        setTimeout(() => {
+                            console.log('Fallback redirect triggered');
+                            window.location.href = 'https://resume.aaryan.com.np/';
+                        }, 1000);
+                    } catch (e) {
+                        console.error('Redirect failed:', e);
+                        redirectMsg.classList.add('show');
+                    }
+                }, 3000); // Delay redirect by 3 seconds
             } else {
                 attempts--;
                 attemptsLeft.textContent = attempts;
@@ -482,7 +589,6 @@
                     blockTimer = 300;
                     blockTimerDisplay.textContent = blockTimer;
                     
-                    // Set block expiry time (current time + 300 seconds)
                     blockExpiryTime = Date.now() + 300000;
                     saveState();
                     
